@@ -9,14 +9,15 @@ const NewGallery = new fetchGallery();
 formEl.addEventListener('submit', onSubmitForm);
 loadMore.addEventListener('click', onClickLoadMore);
 
+
 async function onSubmitForm(event) {
   event.preventDefault();
 
   NewGallery.query = event.currentTarget.elements.searchQuery.value.trim();
   NewGallery.page = 1;
-  // console.log(NewGallery.query);
     
   if (NewGallery.query === '') {
+    loadMore.classList.add('is-hidden');
     Notiflix.Notify.failure('Треба заповнити форму');
     galleryEl.innerHTML = '';
     event.target.reset();
@@ -37,6 +38,12 @@ async function onSubmitForm(event) {
 
     markupGallery(response);
     Notiflix.Notify.info(`Hooray! We found ${response.data.totalHits} images.`)
+    loadMore.classList.remove('is-hidden');
+
+     if (NewGallery.page === Math.ceil(response.data.totalHits / 40)) {
+      loadMore.classList.add('is-hidden');
+      Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    }
 
   }
     catch (error) {
@@ -44,26 +51,21 @@ async function onSubmitForm(event) {
     }
   }
 
+  
 async function onClickLoadMore (event) {
   NewGallery.page += 1;
 
   try {
     const response = await NewGallery.getPhotos();
-    console.log(response);
-    if (NewGallery.page * NewGallery.per_page > response.data.totalHits) {
+
+    if (NewGallery.page === Math.ceil(response.data.totalHits / 40)) {
       loadMore.classList.add('is-hidden');
       Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-    } else {
-      loadMore.classList.remove('is-hidden');
     }
 
-    galleryEl.insertAdjacentHTML('beforeend',markupGallery(response));
-    smoothScrolling()
+    markupGallery(response);
+    smoothScrolling();
   } catch (error) {
     console.log(error);
   }
 };
-
-
-
-
